@@ -9,9 +9,10 @@ void FindSweepMineTest::TearDown(){
 
 }
 
-TEST_F(FindSweepMineTest, FIND){
+TEST_F(FindSweepMineTest, FINDWINDOW){
 	autoSweepMine.FindMineProgram();
 	ASSERT_TRUE(autoSweepMine.SweepMineProgramInfo.MineWinHandle != nullptr);
 }
+
 
 

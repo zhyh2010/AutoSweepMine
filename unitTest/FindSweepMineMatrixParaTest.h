@@ -3,7 +3,7 @@
 #include "gtest\gtest.h"
 #include "iostream"
 
-class FindSweepMineTest : public testing::Test{
+class FindSweepMineMatrixParaTest : public testing::Test{
 public:
 	virtual void SetUp();
 	virtual void TearDown();
@@ -11,4 +11,3 @@ public:
 public:
 	AutoSweepMine autoSweepMine;
 };
-
