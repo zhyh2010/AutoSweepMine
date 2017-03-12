@@ -90,6 +90,11 @@ public:
 	void SetNearestUnknownCellsFlag(int row, int col);
 	void UpdateMineMatrixBitmap();
 
+	// 高级扫雷算法
+	int GetMaxMineNumsInCommonNearestCells(int row, int col, int neighbor_row, int neighbor_col);
+	int GetDiffNearestCells(int row, int col, int neighbor_row, int neighbor_col);
+	void SetDiffNearestCellsFlagOrNot(int row, int col, int neighbor_row, int neighbor_col, bool isFlag);
+
 	// 扫雷算法
 	void BruteSearch();
 

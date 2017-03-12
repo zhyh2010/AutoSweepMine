@@ -431,6 +431,7 @@ MineStatus AutoSweepMine::GetMineMatrixCellStatusByRowAndCol(int row, int col){
 #endif
 
 void AutoSweepMine::DoAutoSweepMine(){
+
 	try{
 		FindMineProgram();
 		GetMineMatrixAndMineNumFaceArea();
@@ -440,7 +441,7 @@ void AutoSweepMine::DoAutoSweepMine(){
 		BruteSearch();
 	}
 	catch (exception & e){
-		cerr << e.what() << endl;
+		cerr << e.what() << endl;	
 	}	
 }
 
@@ -505,8 +506,11 @@ void AutoSweepMine::BruteSearch(){
 				}
 				else{
 					int UnknownAround = GetNearestCells(i, j, UNKNOWN);
+					if (UnknownAround == 0)
+						continue;
+
 					int FlagAround = GetNearestCells(i, j, FLAG);
-					if (UnknownAround == static_cast<int>(status)-FlagAround && UnknownAround > 0){
+					if (UnknownAround == static_cast<int>(status)-FlagAround){
 						// 未知处都是 雷
 						SetNearestAroundCellsFlagOrNot(i, j, true);
 						IsGetNext = true;
@@ -515,6 +519,39 @@ void AutoSweepMine::BruteSearch(){
 						// safe
 						SetNearestAroundCellsFlagOrNot(i, j, false);
 						IsGetNext = true;
+					}
+					else{
+						// 高级扫雷策略
+						vector<pair<int, int>> search_direction{ pair<int, int>(-1, 0), pair<int, int>(1, 0),
+							pair<int, int>(0, -1), pair<int, int>(0, 1) };
+						for (unsigned int ii = 0; ii < 4; ii++){
+							int cur_row = i + search_direction[ii].first;
+							int cur_col = j + search_direction[ii].second;
+							if (cur_row < 1 || cur_row > MineMatrixInfo.Rows || cur_col < 1 || cur_col > MineMatrixInfo.Cols)
+								continue;
+
+							MineStatus neighbour_status = GetMineMatrixCellStatusByRowAndCol(cur_row, cur_col);				
+							if (static_cast<int>(neighbour_status) >= 1 && static_cast<int>(neighbour_status) <= 8){
+								int mines_in_common_cells = GetMaxMineNumsInCommonNearestCells(i, j, cur_row, cur_col);
+								int diff_cells = GetDiffNearestCells(i, j, cur_row, cur_col);
+								if (diff_cells == 0)
+									continue;
+
+								if (GetDiffNearestCells(cur_row, cur_col, i, j) != 0)
+									continue;
+
+								if (diff_cells == static_cast<int>(status)-FlagAround - mines_in_common_cells){
+									// 未知处都是 雷
+									SetDiffNearestCellsFlagOrNot(i, j, cur_row, cur_col, true);
+									IsGetNext = true;
+								}
+								else if (static_cast<int>(status)-FlagAround - mines_in_common_cells == 0){
+									// safe
+									SetDiffNearestCellsFlagOrNot(i, j, cur_row, cur_col, false);
+									IsGetNext = true;
+								}
+							}
+						}									
 					}
 				}
 			}
@@ -527,6 +564,8 @@ void AutoSweepMine::BruteSearch(){
 		}
 
 		cout << "finish one search" << endl;
+// 		if (GetMineMatrixFaceStatus() == SUCCESS)
+// 			return;
 	}
 }
 
@@ -545,6 +584,57 @@ vector<int> AutoSweepMine::ExtractMineCellNumFeature(Mat MineNumBitmap){
 		}
 	}
 	return FeatureMineNum;
+}
+
+int AutoSweepMine::GetMaxMineNumsInCommonNearestCells(int row, int col, int neighbor_row, int neighbor_col){
+	int common_cell_num = 0;
+	for (int i = max(1, row - 1); i <= min(MineMatrixInfo.Rows, row + 1); i++){
+		for (int j = max(1, col - 1); j <= min(MineMatrixInfo.Cols, col + 1); j++){
+			MineStatus status = GetMineMatrixCellStatusByRowAndCol(i, j);
+			if (!(i == row && j == col) && (UNKNOWN == status)){
+				if (abs(neighbor_row - i) <= 1 && abs(neighbor_col - j) <= 1){
+					common_cell_num++;
+				}
+			}
+		}
+	}
+	int neighbour_MinesAll = GetMineMatrixCellStatusByRowAndCol(neighbor_row, neighbor_col);
+	int neighbour_FlagsAll = GetNearestCells(neighbor_row, neighbor_col, FLAG);
+	int MinesAll = GetMineMatrixCellStatusByRowAndCol(row, col);
+	int FlagsAll = GetNearestCells(row, col, FLAG);
+	return min(min(MinesAll - FlagsAll, neighbour_MinesAll - neighbour_FlagsAll), common_cell_num);
+}
+
+int AutoSweepMine::GetDiffNearestCells(int row, int col, int neighbor_row, int neighbor_col){
+	int diff_cell_num = 0;
+	for (int i = max(1, row - 1); i <= min(MineMatrixInfo.Rows, row + 1); i++){
+		for (int j = max(1, col - 1); j <= min(MineMatrixInfo.Cols, col + 1); j++){
+			MineStatus status = GetMineMatrixCellStatusByRowAndCol(i, j);
+			if (!(i == row && j == col) && (UNKNOWN == status)){
+				if (!(abs(neighbor_row - i) <= 1 && abs(neighbor_col - j) <= 1)){
+					diff_cell_num++;
+				}
+			}
+		}
+	}
+	return diff_cell_num;
+}
+
+void AutoSweepMine::SetDiffNearestCellsFlagOrNot(int row, int col, int neighbor_row, int neighbor_col, bool isFlag){
+	for (int i = max(1, row - 1); i <= min(MineMatrixInfo.Rows, row + 1); i++){
+		for (int j = max(1, col - 1); j <= min(MineMatrixInfo.Cols, col + 1); j++){
+			MineStatus status = GetMineMatrixCellStatusByRowAndCol(i, j);
+			if (!(i == row && j == col) && (UNKNOWN == status)){
+				if (!(abs(neighbor_row - i) <= 1 && abs(neighbor_col - j) <= 1)){
+					if (!isFlag)
+						SetNearestUnknownCellsSafe(i, j);
+					else
+						SetNearestUnknownCellsFlag(i, j);
+				}
+			}
+		}
+	}
+	UpdateMineMatrixBitmap();
 }
 
 
