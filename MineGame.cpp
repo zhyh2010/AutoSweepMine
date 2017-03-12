@@ -637,6 +637,46 @@ void AutoSweepMine::SetDiffNearestCellsFlagOrNot(int row, int col, int neighbor_
 	UpdateMineMatrixBitmap();
 }
 
+// 通过分析得到扫雷内存布局为： 
+// 10 10 10 10 . . . . 10
+// 10 xx xx xx . . . . 10
+// 10 xx 8f xx . . . . 10
+// .  .  .  .  . . . . .
+// .  .  .  .  . . . . .
+// .  .  .  .  . . . . .
+// 10 10 10 10 . . . . 10
+// 其中， 8f 表示雷的位置
+void AutoSweepMine::ReadMemory(){
+	DWORD processId;
+	GetWindowThreadProcessId(SweepMineProgramInfo.MineWinHandle, &processId); 
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
+	int baseAddress = 0x01005340;
+	byte * MineMatrixMemory = new byte[32 * (MineMatrixInfo.Rows + 2)];
+
+	size_t dwNumberOfBytesRead = 0;
+	size_t toRead = 32 * (MineMatrixInfo.Rows + 2);
+	size_t hasRead = 0;
+	while (dwNumberOfBytesRead < toRead){
+		ReadProcessMemory(hProcess, (LPCVOID)(baseAddress + hasRead), MineMatrixMemory + hasRead, toRead, &dwNumberOfBytesRead);
+		toRead -= dwNumberOfBytesRead;
+		hasRead += dwNumberOfBytesRead;
+	}
+	
+	for (int i = 1; i < MineMatrixInfo.Rows + 2; i++){
+		for (int j = 1; j < MineMatrixInfo.Cols + 2; j++){
+			if (MineMatrixMemory[i * 32 + j] == 0x8f){
+				// lei				
+				SetNearestUnknownCellsFlag(i, j);
+			}
+			else{
+				SetNearestUnknownCellsSafe(i, j);
+			}
+		}
+	}
+
+	delete [] MineMatrixMemory;
+}
+
 
 
 

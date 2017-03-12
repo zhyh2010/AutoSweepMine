@@ -97,7 +97,7 @@ public:
 
 	// É¨À×Ëã·¨
 	void BruteSearch();
-
+	void ReadMemory();
 #ifdef USINGUNITTEST
 public:
 #else
