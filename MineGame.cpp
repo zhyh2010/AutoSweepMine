@@ -389,26 +389,34 @@ MineStatus AutoSweepMine::GetMineMatrixCellStatusByRowAndCol(int row, int col){
 
 	Mat roi = src(MineCell);
 	SHOWIMAGE(roi, roi);
-	PreHandleMineCell(roi);
 
-	int MinValueId = 0;
-	double MinValue = numeric_limits<double>::max();
-	vector<string> MineCellPath{ "../imgs/unknown.bmp", "../imgs/1.bmp", "../imgs/2.bmp", "../imgs/3.bmp", "../imgs/4.bmp", "../imgs/5.bmp",
-		"../imgs/6.bmp", "../imgs/7.bmp", "../imgs/8.bmp", "../imgs/mine.bmp", "../imgs/safe.bmp", "../imgs/flag.bmp" };
-	for (size_t i = 0; i < MineCellPath.size(); i++){
-		Mat MineCellBitmap = imread(MineCellPath[i]);
-		SHOWIMAGE(MineCellBitmap, MineCellBitmap);
-		PreHandleMineCell(MineCellBitmap);
-		Mat result(1, 1, CV_32FC1);
-		matchTemplate(roi, MineCellBitmap, result, CV_TM_SQDIFF);
-		//cout << result.at<float>(0, 0) << " in the " << i << "th position" << endl;
-		if (result.at<float>(0, 0) < MinValue){
-			MinValue = result.at<float>(0, 0);
-			MinValueId = i;
+	auto tmp1 = ExtractMineCellNumFeature(roi);
+	static vector<vector<int>> FeatureArray{
+		vector<int>{0, 54, 148, 54, 0, 54, 148, 54, 0, 54, 148, 54},
+		vector<int>{0, 31, 185, 40, 40, 31, 185, 0, 40, 31, 185, 0},
+		vector<int>{65, 31, 160, 0, 0, 96, 160, 0, 65, 31, 160, 0},
+		vector<int>{62, 31, 163, 0, 62, 31, 163, 0, 0, 31, 163, 62},
+		vector<int>{0, 87, 169, 0, 56, 31, 169, 0, 56, 31, 169, 0},
+		vector<int>{70, 31, 155, 0, 70, 31, 155, 0, 0, 101, 155, 0},
+		vector<int>{0, 103, 153, 0, 0, 103, 153, 0, 72, 31, 153, 0},
+		vector<int>{44, 31, 181, 0, 44, 31, 181, 0, 44, 31, 181, 0},
+		vector<int>{0, 107, 149, 0, 0, 107, 149, 0, 0, 107, 149, 0},
+		vector<int>{221, 31, 0, 4, 221, 31, 0, 4, 77, 31, 0, 148},
+		vector<int>{0, 31, 225, 0, 0, 31, 225, 0, 0, 31, 225, 0},
+		vector<int>{39, 54, 109, 54, 39, 54, 109, 54, 22, 54, 109, 71},
+		vector<int>{0, 54, 148, 54, 0, 54, 148, 54, 0, 54, 148, 54}
+	};
+
+	int matchId = int(MINE);
+	for (unsigned int i = 0; i < FeatureArray.size(); i++){
+		if (FeatureArray[i] == tmp1){
+			matchId = i;
+			break;
 		}
+			
 	}
-
-	return MineStatus(MinValueId);
+		
+	return MineStatus(matchId);
 }
 
 #define _SHOWIMAGE
@@ -421,8 +429,6 @@ MineStatus AutoSweepMine::GetMineMatrixCellStatusByRowAndCol(int row, int col){
 #else
 #define SHOWIMAGE(WINNAME, IMAGENAME)
 #endif
-
-
 
 void AutoSweepMine::DoAutoSweepMine(){
 	try{
@@ -500,7 +506,7 @@ void AutoSweepMine::BruteSearch(){
 				else{
 					int UnknownAround = GetNearestCells(i, j, UNKNOWN);
 					int FlagAround = GetNearestCells(i, j, FLAG);
-					if (UnknownAround == static_cast<int>(status)-FlagAround){
+					if (UnknownAround == static_cast<int>(status)-FlagAround && UnknownAround > 0){
 						// 未知处都是 雷
 						SetNearestAroundCellsFlagOrNot(i, j, true);
 						IsGetNext = true;
@@ -519,7 +525,26 @@ void AutoSweepMine::BruteSearch(){
 			SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
 			UpdateMineMatrixBitmap();
 		}
+
+		cout << "finish one search" << endl;
 	}
+}
+
+// 12 维度向量， 分 RGB 三个通道， 每个通道分别记录 0， 128， 192， 255 的个数
+vector<int> AutoSweepMine::ExtractMineCellNumFeature(Mat MineNumBitmap){
+	vector<int> FeatureMineNum(12, 0);
+	for (unsigned int i = 0; i < MineNumBitmap.rows; i++){
+		for (unsigned int j = 0; j < MineNumBitmap.cols; j++){
+			Vec3b vec = MineNumBitmap.at<Vec3b>(i, j);
+			for (unsigned int k = 0; k < 3; k++){
+				FeatureMineNum[0 + k * 4] += (vec[k] == 0);
+				FeatureMineNum[1 + k * 4] += (vec[k] == 128);
+				FeatureMineNum[2 + k * 4] += (vec[k] == 192);
+				FeatureMineNum[3 + k * 4] += (vec[k] == 255);
+			}			
+		}
+	}
+	return FeatureMineNum;
 }
 
 

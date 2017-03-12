@@ -59,7 +59,7 @@ public:
 	void PreHandleMineCell(Mat & MineCellBitmap);
 	int GetMineMatrixRows();
 	int GetMineMatrixCols();
-
+	vector<int> ExtractMineCellNumFeature(Mat MineNumBitmap);
 
 	// À×¼ÆÊýÇø
 	void GetMineMatrixMineNumArea(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
