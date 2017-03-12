@@ -12,7 +12,7 @@ using namespace cv;
 using namespace std;
 
 enum MineStatus{
-	UNKNOWN = 0, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, MINE
+	UNKNOWN = 0, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, MINE, SAFE, FLAG
 };
 
 struct tMineCell{
@@ -51,46 +51,53 @@ public:
 
 	void GetMineMatrixAndMineNumFaceArea();
 
-	// 获取雷区
+	// 雷区
 	void GetMineMatrixArea(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
 	void GetMineMatrixAreaRoughPosition(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
 	void GetMineMatrixAreaFinePosition();
+	MineStatus GetMineMatrixCellStatusByRowAndCol(int row, int col);
+	void PreHandleMineCell(Mat & MineCellBitmap);
+	int GetMineMatrixRows();
+	int GetMineMatrixCols();
 
-	// 获取雷计数区
+
+	// 雷计数区
 	void GetMineMatrixMineNumArea(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
 	void GetMineMatrixMineNumAreaRoughPosition(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
 	void GetMineMatrixMineNumAreaFinePosition();
+	int MatchMineNum(Mat BitmapNum);
+	void PreHandleMineNums(Mat & BitmapNum);
+	int GetMineMatrixMineNums();
 
-	// 获取脸区
+	// 脸区
 	void GetMineMatrixFaceArea(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
 	void GetMineMatrixFaceAreaRoughPosition(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray);
 	void GetMineMatrixFaceAreaFinePosition();
-
+	void PreHandleMineFaces(Mat & BitmapFace);
+	Rect PreHandleMineFaces_FindBasicFaceArea(Mat & BitmapFace);
+	tFaceStatus GetMineMatrixFaceStatus();
 
 	void GetMineMatrixAndMineNumFaceAreaBitmapToFile();
 	vector<vector<Point>> ExtractContoursForMineMatrixAreaBitmap();
 	vector<double> GetContoursAreaArray(vector<vector<Point>> & contours);
 
-	int MatchMineNum(Mat BitmapNum);
-	void PreHandleMineNums(Mat & BitmapNum);
-
-	MineStatus GetMineMatrixCellStatusByRowAndCol(int row, int col);
-
 	void DoAutoSweepMine();
 
+	// 获取周围邻域信息
+	int GetNearestCells(int row, int col, MineStatus status);
+	void SetNearestAroundCellsFlagOrNot(int row, int col, bool isFlag);
+	void SetNearestUnknownCellsSafe(int row, int col);
+	void SetNearestUnknownCellsFlag(int row, int col);
+	void UpdateMineMatrixBitmap();
+
+	// 扫雷算法
+	void BruteSearch();
 
 #ifdef USINGUNITTEST
 public:
 #else
 private:
 #endif
-	int GetMineMatrixRows();
-	int GetMineMatrixCols();
-	int GetMineMatrixMineNums();
-	tFaceStatus GetMineMatrixFaceStatus();
-	void PreHandleMineFaces(Mat & BitmapFace);
-	Rect PreHandleMineFaces_FindBasicFaceArea(Mat & BitmapFace);
-
 	vector<vector<tMineCell>> MineMatrix;
 	tSweepMineProgram SweepMineProgramInfo;
 	tMineMatrix MineMatrixInfo;

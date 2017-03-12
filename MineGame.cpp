@@ -12,7 +12,7 @@ string tSweepMineProgram::MineWinClass = "扫雷";
 string tSweepMineProgram::MineWinName = "扫雷";
 int tSweepMineProgram::MineCellLen = 16;
 
-#define _SHOWIMAGE
+//#define _SHOWIMAGE
 
 #ifdef _SHOWIMAGE
 #define SHOWIMAGE(WINNAME, IMAGENAME){	\
@@ -103,10 +103,10 @@ vector<vector<Point>> AutoSweepMine::ExtractContoursForMineMatrixAreaBitmap(){
 	if (src_ori.empty()){
 		throw exception("读取扫雷图片失败！！！");
 	}
-	SHOWIMAGE(src_ori, src_ori);
+	Mat src = src_ori.clone();
+	SHOWIMAGE(src, src);
 
-	Mat src;
-	cvtColor(src_ori, src, CV_RGB2GRAY);
+	cvtColor(src, src, CV_RGB2GRAY);
 	threshold(src, src, 0, 255, cv::THRESH_OTSU);
 	SHOWIMAGE(bin, src);
 
@@ -160,7 +160,7 @@ int AutoSweepMine::MatchMineNum(Mat BitmapNum){
 		resize(standard, standard, BitmapNum.size());
 		Mat result(1, 1, CV_32FC1);
 		matchTemplate(BitmapNum, standard, result, TM_CCORR_NORMED);
-		cout << result.at<float>(0, 0) << " in the " << i << "th position" << endl;
+		//cout << result.at<float>(0, 0) << " in the " << i << "th position" << endl;
 		if (result.at<float>(0, 0) > MaxValue){
 			MaxValue = result.at<float>(0, 0);
 			MaxValueId = i;
@@ -213,7 +213,7 @@ tFaceStatus AutoSweepMine::GetMineMatrixFaceStatus(){
 		SHOWIMAGE(standard, standard);
 		Mat result(1, 1, CV_32FC1);
 		matchTemplate(MineMatrixFaceArea, standard, result, TM_CCORR_NORMED);
-		cout << result.at<float>(0, 0) << " in the " << i << "th position" << endl;		
+		//cout << result.at<float>(0, 0) << " in the " << i << "th position" << endl;		
 		if (result.at<float>(0, 0) > MaxValue){
 			MaxValue = result.at<float>(0, 0);
 			MaxValueId = i;
@@ -222,8 +222,6 @@ tFaceStatus AutoSweepMine::GetMineMatrixFaceStatus(){
 
 	return tFaceStatus(MaxValueId);
 }
-
-
 
 void AutoSweepMine::GetMineMatrixAreaRoughPosition(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray){
 	ContoursAreaArray.push_back(0);  // 哨兵
@@ -240,7 +238,8 @@ void AutoSweepMine::GetMineMatrixAreaRoughPosition(vector<vector<Point>> & conto
 
 // 这里精细寻找时候的轮廓实际上是在粗匹配基准上得到，所以应该加入粗匹配时候的基准
 void AutoSweepMine::GetMineMatrixAreaFinePosition(){
-	Mat roi = src_ori(MineMatrixInfo.MineMatrixArea);
+	Mat src = src_ori.clone();
+	Mat roi = src(MineMatrixInfo.MineMatrixArea);
 	SHOWIMAGE(roi, roi);
 
 	threshold(roi, roi, 200, 255, CV_THRESH_BINARY);
@@ -285,7 +284,8 @@ void AutoSweepMine::GetMineMatrixMineNumAreaRoughPosition(vector<vector<Point>> 
 }
 
 void AutoSweepMine::GetMineMatrixMineNumAreaFinePosition(){
-	Mat roi = src_ori(MineMatrixInfo.MineMatrixMineNumArea);
+	Mat src = src_ori.clone();
+	Mat roi = src(MineMatrixInfo.MineMatrixMineNumArea);
 	SHOWIMAGE(roi, roi);
 
 	threshold(roi, roi, 200, 255, CV_THRESH_BINARY);
@@ -316,60 +316,6 @@ void AutoSweepMine::GetMineMatrixMineNumAreaFinePosition(){
 	MineMatrixInfo.MineMatrixMineNumArea = rect;
 }
 
-#define _SHOWIMAGE
-
-#ifdef _SHOWIMAGE
-#define SHOWIMAGE(WINNAME, IMAGENAME){	\
-	namedWindow(#WINNAME, CV_WINDOW_NORMAL); \
-	imshow(#WINNAME, IMAGENAME);	\
-	cvWaitKey();	\
-}
-#else
-#define SHOWIMAGE(WINNAME, IMAGENAME)
-#endif
-
-void AutoSweepMine::PreHandleMineFaces(Mat & BitmapFace_ori){
-	Rect FaceArea = PreHandleMineFaces_FindBasicFaceArea(BitmapFace_ori);
-	BitmapFace_ori = BitmapFace_ori(FaceArea);
-}
-
-MineStatus AutoSweepMine::GetMineMatrixCellStatusByRowAndCol(int row, int col){
-	Rect MineCell(MineMatrixInfo.MineMatrixArea.x + SweepMineProgramInfo.MineCellLen * (col - 1),
-		MineMatrixInfo.MineMatrixArea.y + SweepMineProgramInfo.MineCellLen * (row - 1),
-		SweepMineProgramInfo.MineCellLen,
-		SweepMineProgramInfo.MineCellLen);
-	Mat src = src_ori.clone();
-	rectangle(src, MineCell, Scalar(255, 255, 0), 2);
-	SHOWIMAGE(MineCell, src);
-
-	Mat roi = src(MineCell);
-	SHOWIMAGE(roi, roi);
-	
-
-
-	return UNKNOWN;
-}
-
-void AutoSweepMine::DoAutoSweepMine(){
-	try{
-		FindMineProgram();
-		GetMineMatrixAndMineNumFaceArea();
-		GetMineMatrixAndMineNumFaceAreaBitmapToFile();
-		GetMineMatrixInfo();
-
-		while (1){
-			GetMineMatrixCellStatusByRowAndCol(1, 2);
-			GetMineMatrixAndMineNumFaceAreaBitmapToFile();
-			src_ori = imread("tmp.bmp");
-			//Sleep(1000);
-			cout << "hello" << endl;
-		}
-	}
-	catch (exception & e){
-		cerr << e.what() << endl;
-	}	
-}
-
 void AutoSweepMine::GetMineMatrixFaceAreaRoughPosition(vector<vector<Point>> & contours, vector<double> & ContoursAreaArray){
 	ContoursAreaArray.push_back(INT_MAX);
 	unsigned int min_area_id = ContoursAreaArray.size() - 1;
@@ -382,7 +328,8 @@ void AutoSweepMine::GetMineMatrixFaceAreaRoughPosition(vector<vector<Point>> & c
 }
 
 void AutoSweepMine::GetMineMatrixFaceAreaFinePosition(){
-	Mat roi = src_ori(MineMatrixInfo.MineMatrixFaceArea);
+	Mat src = src_ori.clone();
+	Mat roi = src(MineMatrixInfo.MineMatrixFaceArea);
 	Rect FaceArea = PreHandleMineFaces_FindBasicFaceArea(roi);
 	FaceArea.x += MineMatrixInfo.MineMatrixFaceArea.x;
 	FaceArea.y += MineMatrixInfo.MineMatrixFaceArea.y;
@@ -413,6 +360,171 @@ Rect AutoSweepMine::PreHandleMineFaces_FindBasicFaceArea(Mat & BitmapFace_ori){
 	}
 	return boundingRect(myContours[MaxContoursId]);
 }
+
+void AutoSweepMine::PreHandleMineFaces(Mat & BitmapFace_ori){
+	Rect FaceArea = PreHandleMineFaces_FindBasicFaceArea(BitmapFace_ori);
+	BitmapFace_ori = BitmapFace_ori(FaceArea);
+}
+
+void AutoSweepMine::PreHandleMineCell(Mat & MineCellBitmap){
+	Mat background = imread("../imgs/safe.bmp");
+	SHOWIMAGE(background, background);
+
+	absdiff(MineCellBitmap, background, MineCellBitmap);
+	SHOWIMAGE(MineCellBitmap, MineCellBitmap);
+
+
+	cvtColor(MineCellBitmap, MineCellBitmap, CV_RGB2GRAY);
+	//SHOWIMAGE(MineCellBitmap, MineCellBitmap);
+	threshold(MineCellBitmap, MineCellBitmap, 50, 255, CV_THRESH_BINARY);
+	SHOWIMAGE(MineCellBitmap, MineCellBitmap);
+}
+
+MineStatus AutoSweepMine::GetMineMatrixCellStatusByRowAndCol(int row, int col){	
+	Rect MineCell(MineMatrixInfo.MineMatrixArea.x + SweepMineProgramInfo.MineCellLen * (col - 1),
+		MineMatrixInfo.MineMatrixArea.y + SweepMineProgramInfo.MineCellLen * (row - 1),
+		SweepMineProgramInfo.MineCellLen,
+		SweepMineProgramInfo.MineCellLen);
+	Mat src = src_ori.clone();
+
+	Mat roi = src(MineCell);
+	SHOWIMAGE(roi, roi);
+	PreHandleMineCell(roi);
+
+	int MinValueId = 0;
+	double MinValue = numeric_limits<double>::max();
+	vector<string> MineCellPath{ "../imgs/unknown.bmp", "../imgs/1.bmp", "../imgs/2.bmp", "../imgs/3.bmp", "../imgs/4.bmp", "../imgs/5.bmp",
+		"../imgs/6.bmp", "../imgs/7.bmp", "../imgs/8.bmp", "../imgs/mine.bmp", "../imgs/safe.bmp", "../imgs/flag.bmp" };
+	for (size_t i = 0; i < MineCellPath.size(); i++){
+		Mat MineCellBitmap = imread(MineCellPath[i]);
+		SHOWIMAGE(MineCellBitmap, MineCellBitmap);
+		PreHandleMineCell(MineCellBitmap);
+		Mat result(1, 1, CV_32FC1);
+		matchTemplate(roi, MineCellBitmap, result, CV_TM_SQDIFF);
+		//cout << result.at<float>(0, 0) << " in the " << i << "th position" << endl;
+		if (result.at<float>(0, 0) < MinValue){
+			MinValue = result.at<float>(0, 0);
+			MinValueId = i;
+		}
+	}
+
+	return MineStatus(MinValueId);
+}
+
+#define _SHOWIMAGE
+#ifdef _SHOWIMAGE
+#define SHOWIMAGE(WINNAME, IMAGENAME){	\
+	namedWindow(#WINNAME, CV_WINDOW_NORMAL); \
+	imshow(#WINNAME, IMAGENAME);	\
+	cvWaitKey();	\
+}
+#else
+#define SHOWIMAGE(WINNAME, IMAGENAME)
+#endif
+
+
+
+void AutoSweepMine::DoAutoSweepMine(){
+	try{
+		FindMineProgram();
+		GetMineMatrixAndMineNumFaceArea();
+		GetMineMatrixAndMineNumFaceAreaBitmapToFile();
+		GetMineMatrixInfo();
+
+		BruteSearch();
+	}
+	catch (exception & e){
+		cerr << e.what() << endl;
+	}	
+}
+
+int AutoSweepMine::GetNearestCells(int row, int col, MineStatus status){
+	int count = 0;
+	for (int i = max(1, row - 1); i <= min(MineMatrixInfo.Rows, row + 1); i++){
+		for (int j = max(1, col - 1); j <= min(MineMatrixInfo.Cols, col + 1); j++){
+			if (!(i == row && j == col) && (status == GetMineMatrixCellStatusByRowAndCol(i, j))){
+				count++;
+			}
+		}
+	}
+	return count;
+}
+
+void AutoSweepMine::SetNearestUnknownCellsSafe(int row, int col){
+	Point2d ClickPt(MineMatrixInfo.MineMatrixArea.x + SweepMineProgramInfo.MineCellLen * (col - 1 + 0.5),
+		MineMatrixInfo.MineMatrixArea.y + SweepMineProgramInfo.MineCellLen * (row - 1 + 0.5));
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
+}
+
+void AutoSweepMine::SetNearestUnknownCellsFlag(int row, int col){
+	Point2d ClickPt(MineMatrixInfo.MineMatrixArea.x + SweepMineProgramInfo.MineCellLen * (col - 1 + 0.5),
+		MineMatrixInfo.MineMatrixArea.y + SweepMineProgramInfo.MineCellLen * (row - 1 + 0.5));
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_RBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_RBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
+}
+
+void AutoSweepMine::UpdateMineMatrixBitmap(){
+	GetMineMatrixAndMineNumFaceAreaBitmapToFile();
+	src_ori = imread("tmp.bmp");
+}
+
+void AutoSweepMine::SetNearestAroundCellsFlagOrNot(int row, int col, bool isFlag){
+	for (int i = max(1, row - 1); i <= min(MineMatrixInfo.Rows, row + 1); i++){
+		for (int j = max(1, col - 1); j <= min(MineMatrixInfo.Cols, col + 1); j++){
+			if (!(i == row && j == col) && (UNKNOWN == GetMineMatrixCellStatusByRowAndCol(i, j))){
+				if (isFlag)
+					SetNearestUnknownCellsFlag(i, j);
+				else
+					SetNearestUnknownCellsSafe(i, j);
+			}
+		}
+	}
+	UpdateMineMatrixBitmap();
+}
+
+void AutoSweepMine::BruteSearch(){
+	while (1){
+		bool IsGetNext = false;
+		pair<int, int> lastUnknownPos;
+		for (unsigned int i = 1; i <= MineMatrixInfo.Rows; i++){
+			for (unsigned int j = 1; j <= MineMatrixInfo.Cols; j++){
+				MineStatus status = GetMineMatrixCellStatusByRowAndCol(i, j);
+				if (status == UNKNOWN || status == SAFE){
+					lastUnknownPos = pair<int, int>(i, j);
+					continue;
+				}
+				else if (status == MINE){
+					throw exception("Failed to sweep Mine");
+				}
+				else{
+					int UnknownAround = GetNearestCells(i, j, UNKNOWN);
+					int FlagAround = GetNearestCells(i, j, FLAG);
+					if (UnknownAround == static_cast<int>(status)-FlagAround){
+						// 未知处都是 雷
+						SetNearestAroundCellsFlagOrNot(i, j, true);
+						IsGetNext = true;
+					}
+					else if (static_cast<int>(status)-FlagAround == 0){
+						// safe
+						SetNearestAroundCellsFlagOrNot(i, j, false);
+						IsGetNext = true;
+					}
+				}
+			}
+		}
+
+		if (!IsGetNext){
+			// random click
+			SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
+			UpdateMineMatrixBitmap();
+		}
+	}
+}
+
+
+
+
 
 
 
