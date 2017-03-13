@@ -76,6 +76,7 @@ public:
 	void PreHandleMineFaces(Mat & BitmapFace);
 	Rect PreHandleMineFaces_FindBasicFaceArea(Mat & BitmapFace);
 	tFaceStatus GetMineMatrixFaceStatus();
+	void ResetGame();
 
 	void GetMineMatrixAndMineNumFaceAreaBitmapToFile();
 	vector<vector<Point>> ExtractContoursForMineMatrixAreaBitmap();
@@ -98,6 +99,9 @@ public:
 	// É¨À×Ëã·¨
 	void BruteSearch();
 	void ReadMemory();
+
+
+
 #ifdef USINGUNITTEST
 public:
 #else

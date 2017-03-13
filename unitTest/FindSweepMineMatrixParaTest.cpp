@@ -106,7 +106,7 @@ TEST_F(FindSweepMineMatrixParaTest, DISABLED_FINDWINDOWMINEMATRIXAREA_DoAutoSwee
 	ASSERT_NO_THROW(autoSweepMine.DoAutoSweepMine());
 }
 
-TEST_F(FindSweepMineMatrixParaTest, FINDWINDOWMINEMATRIXAREA_ReadMemory){
+TEST_F(FindSweepMineMatrixParaTest, /*DISABLED_*/FINDWINDOWMINEMATRIXAREA_ReadMemory){
 	ASSERT_NO_THROW(autoSweepMine.GetMineMatrixAndMineNumFaceArea());
 	ASSERT_NO_THROW(autoSweepMine.GetMineMatrixAndMineNumFaceAreaBitmapToFile());
 	ASSERT_NO_THROW(autoSweepMine.GetMineMatrixInfo());

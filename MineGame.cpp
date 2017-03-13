@@ -491,20 +491,23 @@ void AutoSweepMine::SetNearestAroundCellsFlagOrNot(int row, int col, bool isFlag
 }
 
 void AutoSweepMine::BruteSearch(){
+	static int stepId = 1;
 	while (1){
 		bool IsGetNext = false;
 		pair<int, int> lastUnknownPos;
 		for (unsigned int i = 1; i <= MineMatrixInfo.Rows; i++){
 			for (unsigned int j = 1; j <= MineMatrixInfo.Cols; j++){
 				MineStatus status = GetMineMatrixCellStatusByRowAndCol(i, j);
-				if (status == UNKNOWN || status == SAFE){
+				if (status == UNKNOWN){
 					lastUnknownPos = pair<int, int>(i, j);
 					continue;
 				}
 				else if (status == MINE){
-					throw exception("Failed to sweep Mine");
+					//throw exception("Failed to sweep Mine");
+					ResetGame();
+					continue;
 				}
-				else{
+				else if (static_cast<int>(status) >= 1 && static_cast<int>(status) <= 8){
 					int UnknownAround = GetNearestCells(i, j, UNKNOWN);
 					if (UnknownAround == 0)
 						continue;
@@ -512,11 +515,13 @@ void AutoSweepMine::BruteSearch(){
 					int FlagAround = GetNearestCells(i, j, FLAG);
 					if (UnknownAround == static_cast<int>(status)-FlagAround){
 						// 未知处都是 雷
+						cout << "The " << stepId++ << "th :  position: ( " << i << ", " << j << " ) status: " << status << " FlagsAround: " << FlagAround << " Set Around Mines " <<endl;
 						SetNearestAroundCellsFlagOrNot(i, j, true);
 						IsGetNext = true;
 					}
 					else if (static_cast<int>(status)-FlagAround == 0){
 						// safe
+						cout << "The " << stepId++ << "th :  position: ( " << i << ", " << j << " ) status: " << status << " FlagsAround: " << FlagAround << " Set Around SAFE " << endl;
 						SetNearestAroundCellsFlagOrNot(i, j, false);
 						IsGetNext = true;
 					}
@@ -542,15 +547,23 @@ void AutoSweepMine::BruteSearch(){
 
 								if (diff_cells == static_cast<int>(status)-FlagAround - mines_in_common_cells){
 									// 未知处都是 雷
+									cout << "The " << stepId++ << "th :  position: ( " << i << ", " << j << " ) status: " << status << " FlagsAround: " << FlagAround
+										<< " neigbours_info: status: " << neighbour_status << " mines_in_common_cells: " << mines_in_common_cells << " diff_cells: " << diff_cells
+										<< " Set Around Mines" << endl;
 									SetDiffNearestCellsFlagOrNot(i, j, cur_row, cur_col, true);
 									IsGetNext = true;
 								}
 								else if (static_cast<int>(status)-FlagAround - mines_in_common_cells == 0){
 									// safe
+									cout << "The " << stepId++ << "th :  position: ( " << i << ", " << j << " ) status: " << status << " FlagsAround: " << FlagAround
+										<< " neigbours_info: status: " << neighbour_status << " mines_in_common_cells: " << mines_in_common_cells << " diff_cells: " << diff_cells
+										<< " Set Around SAFE" << endl;
 									SetDiffNearestCellsFlagOrNot(i, j, cur_row, cur_col, false);
 									IsGetNext = true;
 								}
 							}
+
+							FlagAround = GetNearestCells(i, j, FLAG);   // 标记雷区之后， 这个FlagAround 需要同步更新
 						}									
 					}
 				}
@@ -561,6 +574,7 @@ void AutoSweepMine::BruteSearch(){
 			// random click
 			SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
 			UpdateMineMatrixBitmap();
+			cout << "gamble in position: " << lastUnknownPos.first << " and " << lastUnknownPos.second << endl;
 		}
 
 		cout << "finish one search" << endl;
@@ -675,6 +689,15 @@ void AutoSweepMine::ReadMemory(){
 	}
 
 	delete [] MineMatrixMemory;
+}
+
+void AutoSweepMine::ResetGame(){
+	Point2d ClickPt(MineMatrixInfo.MineMatrixFaceArea.x + MineMatrixInfo.MineMatrixFaceArea.width / 2,
+		MineMatrixInfo.MineMatrixFaceArea.y + MineMatrixInfo.MineMatrixFaceArea.height / 2);
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	Sleep(2);
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	UpdateMineMatrixBitmap();
 }
 
 
