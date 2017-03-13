@@ -529,9 +529,7 @@ void AutoSweepMine::BruteSearch(){
 		}
 
 		if (!IsGetNext){			// random click
-			SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
-			UpdateMineMatrixBitmap();
-			mycout << "gamble in position: " << lastUnknownPos.first << " and " << lastUnknownPos.second << endl;
+			GambleStratry();
 		}
 
 		if (GetMineMatrixFaceStatus() == SUCCESS){
@@ -753,9 +751,7 @@ void AutoSweepMine::BruteSearchWithVector(){
 		}
 
 		if (!IsGetNext){			// random click
-			SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
-			UpdateMineMatrixBitmap();
-			mycout << "gamble in position: " << lastUnknownPos.first << " and " << lastUnknownPos.second << endl;
+			GambleStratry();
 		}
 
 		if (GetMineMatrixFaceStatus() == SUCCESS){
@@ -793,6 +789,22 @@ void AutoSweepMine::DoAutoSweepMine_WithMemory(){
 	catch (exception & e){
 		cerr << e.what() << endl;
 	}
+}
+
+void AutoSweepMine::GambleStratry(){
+	int idx = rand() % LocalSearchPath.size();
+	int selectId = 0;
+	for (int i = 0; i < LocalSearchPath.size(); i++){
+		if (LocalSearchPath[i] != Invaliddata)
+			idx--;
+		
+		if (idx == 0)
+			selectId = i;
+	}
+	lastUnknownPos = LocalSearchPath[selectId];
+	SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
+	UpdateMineMatrixBitmap();
+	mycout << "gamble in position: " << lastUnknownPos.first << " and " << lastUnknownPos.second << endl;
 }
 
 

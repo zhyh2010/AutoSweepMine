@@ -115,6 +115,7 @@ private:
 	void BruteSearch();
 	void BruteSearchWithVector();
 	void ReadMemory();
+	void GambleStratry();
 
 	// 日志功能
 	void LogEveryStepInfo(int row, int col, MineStatus status, int FlagAround, MineStatus neighbour_status, int mines_in_common_cells, int diff_cells, bool isMines);
