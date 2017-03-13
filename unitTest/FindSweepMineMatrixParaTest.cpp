@@ -102,11 +102,11 @@ TEST_F(FindSweepMineMatrixParaTest, DISABLED_FINDWINDOWMINEMATRIXAREA_SetNearest
 	ASSERT_FALSE(autoSweepMine.GetMineMatrixCellStatusByRowAndCol(1, 2) == UNKNOWN);
 }
 
-TEST_F(FindSweepMineMatrixParaTest, DISABLED_FINDWINDOWMINEMATRIXAREA_DoAutoSweepMine){
+TEST_F(FindSweepMineMatrixParaTest, /*DISABLED_*/FINDWINDOWMINEMATRIXAREA_DoAutoSweepMine){
 	ASSERT_NO_THROW(autoSweepMine.DoAutoSweepMine());
 }
 
-TEST_F(FindSweepMineMatrixParaTest, /*DISABLED_*/FINDWINDOWMINEMATRIXAREA_ReadMemory){
+TEST_F(FindSweepMineMatrixParaTest, DISABLED_FINDWINDOWMINEMATRIXAREA_ReadMemory){
 	ASSERT_NO_THROW(autoSweepMine.GetMineMatrixAndMineNumFaceArea());
 	ASSERT_NO_THROW(autoSweepMine.GetMineMatrixAndMineNumFaceAreaBitmapToFile());
 	ASSERT_NO_THROW(autoSweepMine.GetMineMatrixInfo());

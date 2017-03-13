@@ -95,12 +95,19 @@ public:
 	int GetMaxMineNumsInCommonNearestCells(int row, int col, int neighbor_row, int neighbor_col);
 	int GetDiffNearestCells(int row, int col, int neighbor_row, int neighbor_col);
 	void SetDiffNearestCellsFlagOrNot(int row, int col, int neighbor_row, int neighbor_col, bool isFlag);
+	bool AdvanceSearchAlgorithm(int row, int col, MineStatus status);
+	bool AdvanceSearchAlgorithm_JudgeWithNeighbours(int row, int col, MineStatus status, int cur_row, int cur_col);
+	bool OperateByMatrixMineCells(int row, int col);
+	pair<int, int> lastUnknownPos;
 
 	// 扫雷算法
 	void BruteSearch();
 	void ReadMemory();
 
-
+	// 日志功能
+	void LogEveryStepInfo(int row, int col, MineStatus status, int FlagAround, MineStatus neighbour_status, int mines_in_common_cells, int diff_cells, bool isMines);
+	void LogEveryStepInfo(int row, int col, MineStatus status, int FlagAround, bool isMines);
+	static int stepId;
 
 #ifdef USINGUNITTEST
 public:
