@@ -46,6 +46,15 @@ struct tMineMatrix{
 
 class AutoSweepMine{
 public:
+	void DoAutoSweepMine();
+	void DoAutoSweepMine_WithMemory();
+
+#ifdef USINGUNITTEST
+public:
+#else
+private:
+#endif
+
 	void FindMineProgram();
 	void GetMineMatrixInfo();
 
@@ -82,8 +91,6 @@ public:
 	vector<vector<Point>> ExtractContoursForMineMatrixAreaBitmap();
 	vector<double> GetContoursAreaArray(vector<vector<Point>> & contours);
 
-	void DoAutoSweepMine();
-
 	// 获取周围邻域信息
 	int GetNearestCells(int row, int col, MineStatus status);
 	void SetNearestAroundCellsFlagOrNot(int row, int col, bool isFlag);
@@ -114,11 +121,6 @@ public:
 	void LogEveryStepInfo(int row, int col, MineStatus status, int FlagAround, bool isMines);
 	static int stepId;
 
-#ifdef USINGUNITTEST
-public:
-#else
-private:
-#endif
 	vector<vector<tMineCell>> MineMatrix;
 	tSweepMineProgram SweepMineProgramInfo;
 	tMineMatrix MineMatrixInfo;

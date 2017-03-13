@@ -446,15 +446,12 @@ MineStatus AutoSweepMine::GetMineMatrixCellStatusByRowAndCol(int row, int col){
 }
 
 void AutoSweepMine::DoAutoSweepMine(){
-
 	try{
 		FindMineProgram();
 		GetMineMatrixAndMineNumFaceArea();
 		GetMineMatrixAndMineNumFaceAreaBitmapToFile();
 		GetMineMatrixInfo();
-
-		//BruteSearch();
-		ResetSearchPath();
+	
 		BruteSearchWithVector();
 	}
 	catch (exception & e){
@@ -731,6 +728,7 @@ bool AutoSweepMine::AdvanceSearchAlgorithm_JudgeWithNeighbours(int row, int col,
 }
 
 void AutoSweepMine::BruteSearchWithVector(){
+	ResetSearchPath();
 	while (1){
 		bool IsGetNext = false;
 		for (unsigned int i = 0; i < LocalSearchPath.size(); i++){
@@ -764,6 +762,20 @@ void AutoSweepMine::RemoveFromSearchPath(int row, int col){
 	auto iter = find(LocalSearchPath.begin(), LocalSearchPath.end(), pair<int, int>(row, col));
 	if (iter != LocalSearchPath.end()){
 		*iter = Invaliddata;
+	}
+}
+
+void AutoSweepMine::DoAutoSweepMine_WithMemory(){
+	try{
+		FindMineProgram();
+		GetMineMatrixAndMineNumFaceArea();
+		GetMineMatrixAndMineNumFaceAreaBitmapToFile();
+		GetMineMatrixInfo();
+
+		ReadMemory();
+	}
+	catch (exception & e){
+		cerr << e.what() << endl;
 	}
 }
 
