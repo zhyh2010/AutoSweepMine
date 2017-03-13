@@ -12,7 +12,7 @@ using namespace cv;
 using namespace std;
 
 enum MineStatus{
-	UNKNOWN = 0, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, MINE, SAFE, FLAG
+	UNKNOWN = 0, ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, MINE, SAFE, FLAG, INVALID
 };
 
 struct tMineCell{
@@ -54,7 +54,6 @@ public:
 #else
 private:
 #endif
-
 	void FindMineProgram();
 	void GetMineMatrixInfo();
 
@@ -107,9 +106,9 @@ private:
 	bool OperateByMatrixMineCells(int row, int col);
 	pair<int, int> lastUnknownPos;
 	void ResetSearchPath();
-	vector<pair<int, int>> LocalSearchPath;
-	static pair<int, int> Invaliddata;    // ÉÚ±ø
-	void RemoveFromSearchPath(int row, int col);
+	vector<tMineCell> LocalSearchPath;
+	void SetMineCellStatus(int row, int col, MineStatus status);
+	int UnknownNums;
 
 	// É¨À×Ëã·¨
 	void BruteSearch();
@@ -122,7 +121,6 @@ private:
 	void LogEveryStepInfo(int row, int col, MineStatus status, int FlagAround, bool isMines);
 	static int stepId;
 
-	vector<vector<tMineCell>> MineMatrix;
 	tSweepMineProgram SweepMineProgramInfo;
 	tMineMatrix MineMatrixInfo;
 	cv::Mat src_ori;

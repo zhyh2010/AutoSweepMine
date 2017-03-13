@@ -14,7 +14,6 @@ string tSweepMineProgram::MineWinClass = "扫雷";
 string tSweepMineProgram::MineWinName = "扫雷";
 int tSweepMineProgram::MineCellLen = 16;
 int AutoSweepMine::stepId = 1;
-pair<int, int> AutoSweepMine::Invaliddata = pair<int, int>(0, 0);
 
 #define _TOSCREEN
 #ifdef _TOSCREEN
@@ -686,13 +685,15 @@ bool AutoSweepMine::OperateByMatrixMineCells(int row, int col){
 	else if (status == MINE){
 		ResetGame();
 		return false;
-	}
+	}	
 	
-	RemoveFromSearchPath(row, col);							// 除了 unknown 单元外， 遍历到之后都应该标记为已找到
+	SetMineCellStatus(row, col, SAFE);
 	if (static_cast<int>(status) >= 1 && static_cast<int>(status) <= 8){		
 		int UnknownAround = GetNearestCells(row, col, UNKNOWN);
-		if (UnknownAround == 0)
+		if (UnknownAround == 0){						
+			SetMineCellStatus(row, col, INVALID);		// 只有周围点都判断过了才能标记为已找到
 			return false;
+		}
 
 		int FlagAround = GetNearestCells(row, col, FLAG);
 		if (UnknownAround == static_cast<int>(status)-FlagAround){						// 未知处都是 雷
@@ -745,35 +746,42 @@ void AutoSweepMine::BruteSearchWithVector(){
 	while (1){
 		bool IsGetNext = false;
 		for (unsigned int i = 0; i < LocalSearchPath.size(); i++){
-			if (LocalSearchPath[i] == Invaliddata)
+			if (LocalSearchPath[i].Mine == INVALID)
 				continue;
-			IsGetNext = OperateByMatrixMineCells(LocalSearchPath[i].first, LocalSearchPath[i].second) || IsGetNext;
+			IsGetNext = OperateByMatrixMineCells(LocalSearchPath[i].RowId, LocalSearchPath[i].ColId) || IsGetNext;
 		}
 
 		if (!IsGetNext){			// random click
 			GambleStratry();
+			UpdateMineMatrixBitmap();
 		}
 
 		if (GetMineMatrixFaceStatus() == SUCCESS){
 			mycout << "congrutations!!!" << endl;
 			break;
 		}
+
+		mycout << "================ finish once ================" << endl;
 	}
 }
 
 void AutoSweepMine::ResetSearchPath(){	
+	LocalSearchPath.clear();
 	for (unsigned int i = 1; i <= MineMatrixInfo.Rows; i++){
 		for (unsigned int j = 1; j <= MineMatrixInfo.Cols; j++){
-			LocalSearchPath.push_back(pair<int, int>(i, j));
+			LocalSearchPath.push_back(tMineCell{i, j, UNKNOWN});
 		}
 	}
-	LocalSearchPath.push_back(pair<int, int>(MineMatrixInfo.Rows / 2, MineMatrixInfo.Cols / 2));
+	UnknownNums = MineMatrixInfo.Rows * MineMatrixInfo.Cols;
 }
 
-void AutoSweepMine::RemoveFromSearchPath(int row, int col){
-	auto iter = find(LocalSearchPath.begin(), LocalSearchPath.end(), pair<int, int>(row, col));
-	if (iter != LocalSearchPath.end()){
-		*iter = Invaliddata;
+void  AutoSweepMine::SetMineCellStatus(int row, int col, MineStatus status){
+	auto iter = find_if(LocalSearchPath.begin(), LocalSearchPath.end(), [&](tMineCell & item){return item.RowId == row && item.ColId == col; });
+	if (iter != LocalSearchPath.end() && iter->Mine != INVALID){
+		if (iter->Mine == UNKNOWN)
+			UnknownNums--;
+		iter->Mine = status;
+		//mycout << "( " << row << ", " << col << " ) has been set " << status << endl;
 	}
 }
 
@@ -792,17 +800,20 @@ void AutoSweepMine::DoAutoSweepMine_WithMemory(){
 }
 
 void AutoSweepMine::GambleStratry(){
-	int idx = rand() % LocalSearchPath.size();
+	int idx = rand() % UnknownNums;
 	int selectId = 0;
 	for (int i = 0; i < LocalSearchPath.size(); i++){
-		if (LocalSearchPath[i] != Invaliddata)
-			idx--;
-		
-		if (idx == 0)
+		if (LocalSearchPath[i].Mine == UNKNOWN){
 			selectId = i;
+			idx--;
+		}
+		if (idx == 0)
+			break;
 	}
-	lastUnknownPos = LocalSearchPath[selectId];
+	lastUnknownPos.first = LocalSearchPath[selectId].RowId;
+	lastUnknownPos.second = LocalSearchPath[selectId].ColId;
 	SetNearestUnknownCellsSafe(lastUnknownPos.first, lastUnknownPos.second);
+	SetMineCellStatus(lastUnknownPos.first, lastUnknownPos.second, SAFE);
 	UpdateMineMatrixBitmap();
 	mycout << "gamble in position: " << lastUnknownPos.first << " and " << lastUnknownPos.second << endl;
 }
