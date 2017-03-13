@@ -1,0 +1,39 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ALL_BUILD", "ALL_BUILD.vcxproj", "{786C7A69-89A8-3E4D-8D22-D8D5D6C5E0B8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4E68D679-28CF-365E-9CF2-C1EC29EA5AB6} = {4E68D679-28CF-365E-9CF2-C1EC29EA5AB6}
+		{BBC429B9-6F82-3DE4-9C25-A311074C8B5C} = {BBC429B9-6F82-3DE4-9C25-A311074C8B5C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AutoSweepMine", "AutoSweepMine.vcxproj", "{4E68D679-28CF-365E-9CF2-C1EC29EA5AB6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BBC429B9-6F82-3DE4-9C25-A311074C8B5C} = {BBC429B9-6F82-3DE4-9C25-A311074C8B5C}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZERO_CHECK", "ZERO_CHECK.vcxproj", "{BBC429B9-6F82-3DE4-9C25-A311074C8B5C}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{786C7A69-89A8-3E4D-8D22-D8D5D6C5E0B8}.Debug|x64.ActiveCfg = Debug|x64
+		{786C7A69-89A8-3E4D-8D22-D8D5D6C5E0B8}.Release|x64.ActiveCfg = Release|x64
+		{4E68D679-28CF-365E-9CF2-C1EC29EA5AB6}.Debug|x64.ActiveCfg = Debug|x64
+		{4E68D679-28CF-365E-9CF2-C1EC29EA5AB6}.Debug|x64.Build.0 = Debug|x64
+		{4E68D679-28CF-365E-9CF2-C1EC29EA5AB6}.Release|x64.ActiveCfg = Release|x64
+		{4E68D679-28CF-365E-9CF2-C1EC29EA5AB6}.Release|x64.Build.0 = Release|x64
+		{BBC429B9-6F82-3DE4-9C25-A311074C8B5C}.Debug|x64.ActiveCfg = Debug|x64
+		{BBC429B9-6F82-3DE4-9C25-A311074C8B5C}.Debug|x64.Build.0 = Debug|x64
+		{BBC429B9-6F82-3DE4-9C25-A311074C8B5C}.Release|x64.ActiveCfg = Release|x64
+		{BBC429B9-6F82-3DE4-9C25-A311074C8B5C}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
