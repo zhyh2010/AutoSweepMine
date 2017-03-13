@@ -476,6 +476,11 @@ void AutoSweepMine::SetNearestUnknownCellsSafe(int row, int col){
 		MineMatrixInfo.MineMatrixArea.y + SweepMineProgramInfo.MineCellLen * (row - 1 + 0.5));
 	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
 	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
+
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_RBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y)); 	
+	SendMessage(SweepMineProgramInfo.MineWinHandle, WM_RBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
 }
 
 void AutoSweepMine::SetNearestUnknownCellsFlag(int row, int col){
@@ -490,7 +495,17 @@ void AutoSweepMine::UpdateMineMatrixBitmap(){
 	src_ori = imread("tmp.bmp");
 }
 
+// ×óÓÒ¼ü¼ÓËÙ
 void AutoSweepMine::SetNearestAroundCellsFlagOrNot(int row, int col, bool isFlag){
+	if (!isFlag){
+		Point2d ClickPt(MineMatrixInfo.MineMatrixArea.x + SweepMineProgramInfo.MineCellLen * (col - 1 + 0.5),
+			MineMatrixInfo.MineMatrixArea.y + SweepMineProgramInfo.MineCellLen * (row - 1 + 0.5));
+		SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+		SendMessage(SweepMineProgramInfo.MineWinHandle, WM_RBUTTONDOWN, 0, MAKELONG(ClickPt.x, ClickPt.y));
+		SendMessage(SweepMineProgramInfo.MineWinHandle, WM_LBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
+		SendMessage(SweepMineProgramInfo.MineWinHandle, WM_RBUTTONUP, 0, MAKELONG(ClickPt.x, ClickPt.y));
+	}
+
 	for (int i = max(1, row - 1); i <= min(MineMatrixInfo.Rows, row + 1); i++){
 		for (int j = max(1, col - 1); j <= min(MineMatrixInfo.Cols, col + 1); j++){
 			if (!(i == row && j == col) && (UNKNOWN == GetMineMatrixCellStatusByRowAndCol(i, j))){
@@ -750,12 +765,13 @@ void AutoSweepMine::BruteSearchWithVector(){
 	}
 }
 
-void AutoSweepMine::ResetSearchPath(){
+void AutoSweepMine::ResetSearchPath(){	
 	for (unsigned int i = 1; i <= MineMatrixInfo.Rows; i++){
 		for (unsigned int j = 1; j <= MineMatrixInfo.Cols; j++){
 			LocalSearchPath.push_back(pair<int, int>(i, j));
 		}
 	}
+	LocalSearchPath.push_back(pair<int, int>(MineMatrixInfo.Rows / 2, MineMatrixInfo.Cols / 2));
 }
 
 void AutoSweepMine::RemoveFromSearchPath(int row, int col){
