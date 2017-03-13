@@ -99,9 +99,14 @@ public:
 	bool AdvanceSearchAlgorithm_JudgeWithNeighbours(int row, int col, MineStatus status, int cur_row, int cur_col);
 	bool OperateByMatrixMineCells(int row, int col);
 	pair<int, int> lastUnknownPos;
+	void ResetSearchPath();
+	vector<pair<int, int>> LocalSearchPath;
+	static pair<int, int> Invaliddata;    // 哨兵
+	void RemoveFromSearchPath(int row, int col);
 
 	// 扫雷算法
 	void BruteSearch();
+	void BruteSearchWithVector();
 	void ReadMemory();
 
 	// 日志功能
